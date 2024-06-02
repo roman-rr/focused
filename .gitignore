@@ -1,0 +1,38 @@
+# Ignore build artifacts
+/build/
+/dist/
+*.o
+*.so
+*.dll
+
+# Ignore temporary files
+*~
+*.swp
+*.tmp
+
+# Ignore log files
+*.log
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore personal configuration files
+.env
+config.local.json
+
+# Ignore compiled binaries
+/bin/
+/obj/
+
+# Ignore dependency directories
+node_modules/
+vendor/
+
+# Ignore IDE/editor-specific files
+.idea/
+.vscode/
+
+# Specific files for this project
+focused
+*.exe
