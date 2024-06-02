@@ -1,6 +1,7 @@
-<div style="display:flex;justify-content:center;">
-    <img src="/public/images//cover-rectangle-blue.jpg" style="display:block;margin:auto;width: 400px;">
-</div>
+<p align="center">
+     <img alt="A tool that helps you stay focused longer and boost your work productivity" src="/public/images/cover-rectangle-blue.jpg" width="500" />
+</p>
+
 
 # Focused
 
