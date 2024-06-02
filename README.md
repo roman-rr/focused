@@ -1,9 +1,5 @@
 <div style="display:flex;justify-content:center;">
-    <div>
-        <img src="/public/images//cover-rectangle-blue.jpg" style="width: 200px;">
-        <img src="/public/images//cover-rectangle-margin.jpg" style="width: 200px;">
-        <img src="/public/images//cover-rectangle.jpg" style="width: 200px;">
-    </div>
+    <img src="/public/images//cover-rectangle-blue.jpg" style="display:block;margin:auto;width: 400px;">
 </div>
 
 # Focused
