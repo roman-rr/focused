@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iterator>
 #include <filesystem>
+#include <unistd.h>  // for geteuid()
 
 // Function to read lines from a file
 std::vector<std::string> read_lines(const std::string &filename) {
@@ -51,7 +52,16 @@ void block_sites(const std::vector<std::string> &sites) {
 // Function to unblock sites
 void unblock_sites(const std::vector<std::string> &sites) {
     std::ifstream hosts_file_in("/etc/hosts");
+    if (!hosts_file_in.is_open()) {
+        std::cerr << "Error: Unable to open /etc/hosts for reading." << std::endl;
+        return;
+    }
+
     std::ofstream hosts_file_out("/etc/hosts.tmp");
+    if (!hosts_file_out.is_open()) {
+        std::cerr << "Error: Unable to open /etc/hosts.tmp for writing." << std::endl;
+        return;
+    }
 
     std::string line;
     while (std::getline(hosts_file_in, line)) {
@@ -70,7 +80,14 @@ void unblock_sites(const std::vector<std::string> &sites) {
         }
     }
 
-    std::filesystem::rename("/etc/hosts.tmp", "/etc/hosts");
+    hosts_file_in.close();
+    hosts_file_out.close();
+
+    try {
+        std::filesystem::rename("/etc/hosts.tmp", "/etc/hosts");
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
 }
 
 // Function to solve a quadratic equation (simplified for example purposes)
@@ -96,6 +113,11 @@ void solve_quadratic() {
 }
 
 int main() {
+    if (geteuid() != 0) {
+        std::cerr << "This program must be run as root. Please use 'sudo' to run the program." << std::endl;
+        return 1;
+    }
+
     std::vector<std::string> sites = read_lines("data/distractors.txt");
     std::cout << "Do you want to enable or disable blocking social networks? (Enable/Disable): ";
     std::string choice;
