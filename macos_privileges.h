@@ -4,6 +4,7 @@
 #include <string>
 
 extern "C" {
+    bool initialize_authorization();
     bool execute_with_privileges(const std::string &command);
 }
 

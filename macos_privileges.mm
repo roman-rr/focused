@@ -1,21 +1,19 @@
 #include "macos_privileges.h"
 #include <string>
 #include <iostream>
-#include <unistd.h> // For access, sleep
-#include <stdlib.h> // For system
-#include <sys/stat.h> // For chmod
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <Security/Authorization.h>
 #include <Security/AuthorizationTags.h>
-#include <cerrno> // For errno
-#include <cstring> // For strerror
+#include <cerrno>
+#include <cstring>
+
+AuthorizationRef authorizationRef = NULL;
 
 extern "C" {
-    bool execute_with_privileges(const std::string &command) {
-        // Authorization services setup
-        AuthorizationRef authorizationRef;
-        OSStatus status;
-
-        status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authorizationRef);
+    bool initialize_authorization() {
+        OSStatus status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authorizationRef);
         if (status != errAuthorizationSuccess) {
             std::cerr << "AuthorizationCreate failed with status " << status << std::endl;
             return false;
@@ -30,26 +28,45 @@ extern "C" {
         if (status != errAuthorizationSuccess) {
             std::cerr << "AuthorizationCopyRights failed with status " << status << std::endl;
             AuthorizationFree(authorizationRef, kAuthorizationFlagDefaults);
+            authorizationRef = NULL;
             return false;
         }
         std::cerr << "AuthorizationCopyRights succeeded." << std::endl;
 
-        // Construct the command with sudo
+        return true;
+    }
+
+    bool execute_with_privileges(const std::string &command) {
+        if (authorizationRef == NULL) {
+            if (!initialize_authorization()) {
+                return false;
+            }
+        }
+
         const char *args[] = { "-c", command.c_str(), NULL };
         FILE *pipe = NULL;
 
         std::cerr << "Executing command: /bin/sh -c \"" << command << "\"" << std::endl;
-        status = AuthorizationExecuteWithPrivileges(authorizationRef, "/bin/sh", kAuthorizationFlagDefaults, (char *const *)args, &pipe);
+        OSStatus status = AuthorizationExecuteWithPrivileges(authorizationRef, "/bin/sh", kAuthorizationFlagDefaults, (char *const *)args, &pipe);
         if (status != errAuthorizationSuccess) {
             std::cerr << "AuthorizationExecuteWithPrivileges failed with status " << status << std::endl;
             AuthorizationFree(authorizationRef, kAuthorizationFlagDefaults);
+            authorizationRef = NULL;
             return false;
         }
         std::cerr << "AuthorizationExecuteWithPrivileges succeeded." << std::endl;
 
-        // Clean up
-        AuthorizationFree(authorizationRef, kAuthorizationFlagDefaults);
-        std::cerr << "Cleaned up authorization." << std::endl;
+        // Optionally read the output of the command
+        if (pipe) {
+            char buffer[128];
+            std::string result;
+            while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+                result += buffer;
+            }
+            std::cerr << "Command output: " << result << std::endl;
+            int status_code = pclose(pipe);
+            std::cerr << "Command executed with status code " << status_code << std::endl;
+        }
 
         return true;
     }
