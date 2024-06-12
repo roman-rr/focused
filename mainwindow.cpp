@@ -27,11 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Connecting buttons";
     connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
     connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
-
-    // Initialize authorization
-    if (!initialize_authorization()) {
-        qDebug() << "Failed to initialize authorization.";
-    }
 }
 
 // Destructor

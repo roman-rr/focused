@@ -13,6 +13,10 @@ AuthorizationRef authorizationRef = NULL;
 
 extern "C" {
     bool initialize_authorization() {
+        if (authorizationRef != NULL) {
+            return true; // Authorization already initialized
+        }
+
         OSStatus status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authorizationRef);
         if (status != errAuthorizationSuccess) {
             std::cerr << "AuthorizationCreate failed with status " << status << std::endl;
@@ -37,10 +41,8 @@ extern "C" {
     }
 
     bool execute_with_privileges(const std::string &command) {
-        if (authorizationRef == NULL) {
-            if (!initialize_authorization()) {
-                return false;
-            }
+        if (!initialize_authorization()) {
+            return false;
         }
 
         const char *args[] = { "-c", command.c_str(), NULL };
