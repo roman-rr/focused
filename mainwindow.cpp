@@ -86,7 +86,10 @@ void MainWindow::changeEvent(QEvent *event)
 void MainWindow::restoreWindow()
 {
     this->showNormal();
+    this->raise();         // Bring window to the front
     this->activateWindow(); // Bring window to the foreground
+    this->update();        // Force update the window
+    this->repaint();       // Force repaint the window
 }
 
 // Handle tray icon activation (e.g., single-click or double-click)

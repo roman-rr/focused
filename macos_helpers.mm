@@ -1,5 +1,6 @@
 #include "macos_helpers.h"
 #include <Cocoa/Cocoa.h>
+#include <iostream>
 
 @interface AppDelegateHelper : NSObject <NSApplicationDelegate>
 @property (nonatomic, assign) MainWindow *mainWindow;
@@ -16,6 +17,11 @@
     if (self.mainWindow) {
         QMetaObject::invokeMethod(self.mainWindow, "restoreWindow", Qt::QueuedConnection);
     }
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    QMetaObject::invokeMethod(self.mainWindow, "restoreWindow", Qt::QueuedConnection);
+    return YES;
 }
 
 @end
