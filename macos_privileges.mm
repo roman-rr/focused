@@ -1,11 +1,10 @@
 #include "macos_privileges.h"
-#include <string>
-#include <iostream>
+#include <Security/Authorization.h>
+#include <Security/AuthorizationTags.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <Security/Authorization.h>
-#include <Security/AuthorizationTags.h>
+#include <iostream>
 #include <cerrno>
 #include <cstring>
 

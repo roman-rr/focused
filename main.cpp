@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "macos_helpers.h"
 
 #include <QApplication>
 #include <QLocale>
@@ -7,6 +8,9 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    // Set the application icon
+    a.setWindowIcon(QIcon(":/public/icon.png"));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
@@ -17,7 +21,14 @@ int main(int argc, char *argv[])
             break;
         }
     }
+
+
     MainWindow w;
+
+    // Register for macOS-specific events
+    MacOSHelpers::registerForAppEvents(&w);
+
+
     w.show();
     return a.exec();
 }

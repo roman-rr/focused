@@ -24,6 +24,8 @@ set(PROJECT_SOURCES
     privileges.cpp
     macos_privileges.h
     macos_privileges.mm
+    macos_helpers.h
+    macos_helpers.mm
     resources.qrc
     ${TS_FILES}
 )
@@ -46,6 +48,12 @@ target_link_libraries(Focused PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 # Link the Security framework on macOS
 if(APPLE)
     target_link_libraries(Focused PRIVATE "-framework Security")
+
+    set(APP_ICON_MACOS "${CMAKE_SOURCE_DIR}/public/icon.png")
+    set_source_files_properties(${APP_ICON_MACOS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+    set(MACOSX_BUNDLE_ICON_FILE "icon.png")
+    set(MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/Info.plist")
 endif()
 
 # Ensure data file is copied to the build directory

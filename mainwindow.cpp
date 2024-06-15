@@ -14,6 +14,9 @@
 #include <QTextStream>
 #include <iostream>
 #include <QDebug>
+#include <QCloseEvent>
+#include <QEvent>
+#include <QTimer> // Add this include
 
 const QString distractorsFilePath = ":/data/distractors.txt"; // Use a single variable for the resource path
 
@@ -27,12 +30,71 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Connecting buttons";
     connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
     connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
+
+    // Create tray icon and menu
+    trayIcon = new QSystemTrayIcon(this);
+    trayIconMenu = new QMenu(this);
+    restoreAction = new QAction(tr("Restore"), this);
+    quitAction = new QAction(tr("Quit"), this);
+
+    connect(restoreAction, &QAction::triggered, this, &MainWindow::restoreWindow);
+    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+
+    trayIconMenu->addAction(restoreAction);
+    trayIconMenu->addSeparator();
+    trayIconMenu->addAction(quitAction);
+
+    trayIcon->setContextMenu(trayIconMenu);
+    trayIcon->setIcon(QIcon(":/public/icon.png"));
+    trayIcon->show();
+
+    // Set up the tray icon activation behavior
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
 }
 
 // Destructor
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete trayIcon;
+    delete trayIconMenu;
+    delete restoreAction;
+    delete quitAction;
+}
+
+// Handle close event to minimize to tray
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (trayIcon->isVisible()) {
+        hide();
+        event->ignore();
+    }
+}
+
+// Handle change event to catch window minimize action
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::WindowStateChange) {
+        if (isMinimized()) {
+            QTimer::singleShot(0, this, &QWidget::hide);
+        }
+    }
+    QMainWindow::changeEvent(event);
+}
+
+// Restore window from minimized state
+void MainWindow::restoreWindow()
+{
+    this->showNormal();
+    this->activateWindow(); // Bring window to the foreground
+}
+
+// Handle tray icon activation (e.g., single-click or double-click)
+void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
+        restoreWindow();
+    }
 }
 
 // Function to read lines from a file
