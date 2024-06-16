@@ -6,7 +6,7 @@
 # Focused
 
 Focused is a tool designed to help you stay focused longer during work by blocking distracting websites and resources. It modifies your `/etc/hosts` file to redirect specified sites to `127.0.0.1`. Additionally, it features a quadratic equation solver that makes you think² twice before unblocking distractors.
-
+First draft was quickly composed in Kyoto, Japan 🇯🇵 
 
 ## Features
 
