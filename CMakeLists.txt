@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
+# Set the Qt installation path
+set(CMAKE_PREFIX_PATH "/Users/romanrr/Qt/6.7.1/macos")
+
 project(Focused VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -26,6 +29,9 @@ set(PROJECT_SOURCES
     macos_privileges.mm
     macos_helpers.h
     macos_helpers.mm
+    editor_dialog.h
+    editor_dialog.cpp
+    editor_dialog.ui
     resources.qrc
     ${TS_FILES}
 )
@@ -34,6 +40,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Focused
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        editor_dialog.ui
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()

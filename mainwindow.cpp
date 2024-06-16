@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "macos_privileges.h"
 #include "ui_mainwindow.h"
+#include "editor_dialog.h"
 #include "privileges.h"
 #include <fstream>
 #include <vector>
@@ -30,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "Connecting buttons";
     connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
     connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
+    connect(ui->editorButton, &QPushButton::clicked, this, &MainWindow::handleOpenEditorDialog);
 
     // Create tray icon and menu
     trayIcon = new QSystemTrayIcon(this);
@@ -226,3 +228,11 @@ void MainWindow::handleDisableButton() {
     }
     unblock_sites(sites);
 }
+
+void MainWindow::handleOpenEditorDialog()
+{
+    EditorDialog editorDialog(this);
+    editorDialog.exec();
+}
+
+

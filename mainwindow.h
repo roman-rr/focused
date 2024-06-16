@@ -30,6 +30,7 @@ protected:
 private slots:
     void handleEnableButton();
     void handleDisableButton();
+    void handleOpenEditorDialog();
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
