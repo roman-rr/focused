@@ -2,6 +2,7 @@
 #define EDITORDIALOG_H
 
 #include <QDialog>
+#include <QAbstractButton>
 
 namespace Ui {
 class EditorDialog;
@@ -16,7 +17,8 @@ public:
     ~EditorDialog();
 
 private slots:
-    void handleSaveButton();
+    void on_buttonBox_accepted();
+    void on_buttonBox_restoreDefaults();
 
 private:
     Ui::EditorDialog *ui;
@@ -24,6 +26,8 @@ private:
 
     void loadFile();
     void saveFile();
+    void copyResourceToWritableLocation();
+    void resetToDefault(); // Add this line
 };
 
 #endif // EDITORDIALOG_H
