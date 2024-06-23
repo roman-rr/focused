@@ -3,5 +3,7 @@
         <file>data/distractors.txt</file>
         <file>public/icon.png</file>
         <file>info.plist</file>
+        <file>public/mark.png</file>
+        <file>public/plant.png</file>
     </qresource>
 </RCC>

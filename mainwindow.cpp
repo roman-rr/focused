@@ -3,6 +3,7 @@
 #include "ui_mainwindow.h"
 #include "editor_dialog.h"
 #include "privileges.h"
+#include "get_tray_icon_position.h"
 #include <fstream>
 #include <vector>
 #include <regex>
@@ -11,10 +12,12 @@
 #include <filesystem>
 #include <unistd.h>
 #include <QProcess>
+#include "quadratic_dialog.h"
 #include <QFile>
 #include <QTextStream>
 #include <iostream>
 #include <QDebug>
+#include <QMessageBox>
 #include <QCloseEvent>
 #include <QEvent>
 #include <QTimer> // Add this include
@@ -28,30 +31,42 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    qDebug() << "Connecting buttons";
+    // Set window flags to disable moving and resizing
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+
+    // Disable window resizing by modifying window flags
+    setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
+    setFixedSize(size());
+
     connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
     connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
     connect(ui->editorButton, &QPushButton::clicked, this, &MainWindow::handleOpenEditorDialog);
+    connect(ui->exitButton, &QPushButton::clicked, this, &MainWindow::exitButtonClicked);
 
     // Create tray icon and menu
     trayIcon = new QSystemTrayIcon(this);
-    trayIconMenu = new QMenu(this);
-    restoreAction = new QAction(tr("Restore"), this);
-    quitAction = new QAction(tr("Quit"), this);
+    // trayIconMenu = new QMenu(this);
+    // restoreAction = new QAction(tr("Restore"), this);
+    // quitAction = new QAction(tr("Quit"), this);
 
-    connect(restoreAction, &QAction::triggered, this, &MainWindow::restoreWindow);
-    connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
+    // connect(restoreAction, &QAction::triggered, this, &MainWindow::restoreWindow);
+    // connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
-    trayIconMenu->addAction(restoreAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(quitAction);
+    // trayIconMenu->addAction(restoreAction);
+    // trayIconMenu->addSeparator();
+    // trayIconMenu->addAction(quitAction);
 
-    trayIcon->setContextMenu(trayIconMenu);
+    // trayIcon->setContextMenu(trayIconMenu);
     trayIcon->setIcon(QIcon(":/public/icon.png"));
     trayIcon->show();
 
     // Set up the tray icon activation behavior
     connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
+
+    setWindowOpacity(0);
+
+    QTimer::singleShot(200, this, &MainWindow::restoreWindow);
+
 }
 
 // Destructor
@@ -84,22 +99,81 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
 }
 
+// Override the event method to handle window deactivation
+bool MainWindow::event(QEvent *event)
+{
+    if (event->type() == QEvent::WindowDeactivate) {
+        qDebug() << "Window deactivated";
+        hide();
+    }
+    return QMainWindow::event(event);
+}
+
+
 // Restore window from minimized state
 void MainWindow::restoreWindow()
 {
-    this->showNormal();
-    this->raise();         // Bring window to the front
-    this->activateWindow(); // Bring window to the foreground
-    this->update();        // Force update the window
-    this->repaint();       // Force repaint the window
+    QPoint trayIconPos = getTrayIconPosition();
+
+    // Log the tray icon position
+    qDebug() << "Tray Icon Position (Qt): " << trayIconPos.x() << trayIconPos.y();
+
+    // Calculate the position for the window (above the tray icon)
+    int x = trayIconPos.x() - (width() / 2); // Center below the tray icon
+    int y = 0; // Set the top margin to zero
+
+    // Ensure x is within screen bounds
+    QScreen *screen = QApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry();
+    if (x < screenGeometry.left()) {
+        x = screenGeometry.left();
+    } else if (x + width() > screenGeometry.right()) {
+        x = screenGeometry.right() - width();
+    }
+
+    // Log the calculated window position
+    qDebug() << "Window Position: " << x << y;
+
+    // Set the position of the window
+    move(x, y);
+
+    // Show window after few renders
+    if (trayIconPos.x() >= 0 && trayIconPos.y() >= 0) {
+        setWindowOpacity(1);
+        show();
+        raise();
+        activateWindow();
+    }
 }
 
 // Handle tray icon activation (e.g., single-click or double-click)
 void MainWindow::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick) {
-        restoreWindow();
+        qDebug() << "Click from system tray";
+        if (isVisible()) {
+            hide();
+        } else {
+            restoreWindow();
+        }
     }
+}
+
+void MainWindow::moveEvent(QMoveEvent *event)
+{
+    // Prevent the window from moving by resetting its position
+    //restoreWindow();
+    event->ignore();
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    event->ignore(); // Ignore mouse press events to prevent window movement
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    event->ignore(); // Ignore mouse release events to prevent window movement
 }
 
 // Function to read lines from a file
@@ -115,7 +189,6 @@ std::vector<std::string> MainWindow::read_lines(const QString &filename) const {
 
     QTextStream in(&file);
     while (in.readLineInto(&line)) {
-        qDebug() << "Read line:" << line;
 
         // Skip comments and empty lines
         if (line.isEmpty() || line[0] == '#') {
@@ -174,7 +247,7 @@ void MainWindow::block_sites(const std::vector<std::string> &sites) const {
         return;
     }
 
-    qDebug() << "Block command: " << QString::fromStdString(command);
+    // qDebug() << "Block command: " << QString::fromStdString(command);
 
     // Execute the command with privileges
     if (!execute_with_privileges(command)) {
@@ -182,7 +255,7 @@ void MainWindow::block_sites(const std::vector<std::string> &sites) const {
         return;
     }
 
-    ui->statusLabel->setText("Sites blocked successfully.");
+    ui->statusbar->showMessage("Sites blocked successfully.", 5000);  // Message displayed for 5 seconds
 }
 
 // Function to unblock sites
@@ -206,7 +279,7 @@ void MainWindow::unblock_sites(const std::vector<std::string> &sites) const {
         return;
     }
 
-    ui->statusLabel->setText("Sites unblocked successfully.");
+    ui->statusbar->showMessage("Sites unblocked successfully.", 5000);  // Message displayed for 5 seconds
 }
 
 void MainWindow::handleEnableButton() {
@@ -221,18 +294,51 @@ void MainWindow::handleEnableButton() {
 
 void MainWindow::handleDisableButton() {
     qDebug() << "Disable button clicked";
-    std::vector<std::string> sites = read_lines(distractorsFilePath);
-    if (sites.empty()) {
-        qDebug() << "No sites to unblock.";
-        return;
+
+    // Solve quadratic equation to unblock sites
+    int a = 1, b, c;
+    int root1 = arc4random() % 19 - 9;
+    int root2 = arc4random() % 19 - 9;
+    b = -(root1 + root2);
+    c = root1 * root2;
+
+    QuadraticDialog dialog(this);
+    dialog.setEquation(a, b, c, root1, root2);
+    dialog.setWindowIcon(QIcon(":/public/palm.png")); // Set the custom icon for the dialog
+
+    if (dialog.exec() == QDialog::Accepted) {
+        int user_input = dialog.getUserInput();
+        if (user_input == root1 || user_input == root2) {
+            std::vector<std::string> sites = read_lines(distractorsFilePath);
+            if (sites.empty()) {
+                qDebug() << "No sites to unblock.";
+                return;
+            }
+            unblock_sites(sites);
+        } else {
+            QMessageBox::warning(this, "Incorrect Root", "The root you entered is incorrect. Sites remain blocked.");
+        }
     }
-    unblock_sites(sites);
 }
 
 void MainWindow::handleOpenEditorDialog()
 {
     EditorDialog editorDialog(this);
     editorDialog.exec();
+}
+
+
+void MainWindow::exitButtonClicked()
+{
+    // Create a confirmation dialog
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Exit Confirmation", "Are you sure you want to exit?",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    // Check the user's response
+    if (reply == QMessageBox::Yes) {
+        qApp->quit(); // Exit the application
+    }
 }
 
 

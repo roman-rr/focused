@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QPushButton>
+#include <QMessageBox>
 
 EditorDialog::EditorDialog(QWidget *parent) :
     QDialog(parent),
@@ -18,7 +19,6 @@ EditorDialog::EditorDialog(QWidget *parent) :
 
     // Determine a writable location for the distractors file
     distractorsFilePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/distractors.txt";
-    qDebug() << "Distractors file path:" << distractorsFilePath;
 
     // Copy the file from resources to writable location if it doesn't exist
     copyResourceToWritableLocation();
@@ -27,7 +27,7 @@ EditorDialog::EditorDialog(QWidget *parent) :
     loadFile();
 
     // Connect the Restore Defaults button
-    connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &EditorDialog::on_buttonBox_restoreDefaults);
+    connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this, &EditorDialog::handleRestoreDefaults);
 }
 
 EditorDialog::~EditorDialog()
@@ -93,9 +93,27 @@ void EditorDialog::on_buttonBox_accepted()
     accept();
 }
 
-void EditorDialog::on_buttonBox_restoreDefaults()
+void EditorDialog::handleRestoreDefaults()
 {
-    qDebug() << "reset to defaults clicked";
-    resetToDefault();
-    loadFile(); // Reload the file to update the text edit with default content
+    qDebug() << "Reset to defaults clicked";
+
+    // Load the custom icon from resources
+    QPixmap customIcon(":/public/mark.png");
+
+    // Show confirmation prompt with custom icon
+    QMessageBox msgBox;
+    msgBox.setIconPixmap(customIcon);
+    msgBox.setWindowTitle("Confirm Reset");
+    msgBox.setText("Are you sure you want to reset to defaults?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+
+    int ret = msgBox.exec();
+
+    if (ret == QMessageBox::Yes) {
+        resetToDefault();
+        loadFile(); // Reload the file to update the text edit with default content
+    } else {
+        qDebug() << "Reset to defaults canceled";
+    }
 }

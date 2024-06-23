@@ -7,6 +7,7 @@
 #include <QAction>
 #include <vector>
 #include <string>
+#include <QTimer>
 
 namespace Ui {
 class MainWindow;
@@ -26,12 +27,18 @@ public slots:
 protected:
     void closeEvent(QCloseEvent *event) override;
     void changeEvent(QEvent *event) override;
+    bool event(QEvent *event) override;
+    void moveEvent(QMoveEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
 
 private slots:
     void handleEnableButton();
     void handleDisableButton();
     void handleOpenEditorDialog();
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void exitButtonClicked();
 
 private:
     Ui::MainWindow *ui;

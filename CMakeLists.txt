@@ -29,9 +29,18 @@ set(PROJECT_SOURCES
     macos_privileges.mm
     macos_helpers.h
     macos_helpers.mm
+
     editor_dialog.h
     editor_dialog.cpp
     editor_dialog.ui
+
+    quadratic_dialog.h
+    quadratic_dialog.cpp
+    quadratic_dialog.ui
+
+    get_tray_icon_position.h
+    get_tray_icon_position.mm
+
     resources.qrc
     ${TS_FILES}
 )
@@ -41,6 +50,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         editor_dialog.ui
+        quadratic_dialog.ui
     )
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()

@@ -18,7 +18,7 @@ public:
 
 private slots:
     void on_buttonBox_accepted();
-    void on_buttonBox_restoreDefaults();
+    void handleRestoreDefaults();
 
 private:
     Ui::EditorDialog *ui;
