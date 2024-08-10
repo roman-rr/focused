@@ -9,6 +9,8 @@
 #include <string>
 #include <QTimer>
 
+#include "topnotch.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -31,7 +33,7 @@ protected:
     void moveEvent(QMoveEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-
+    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void handleEnableButton();
@@ -46,11 +48,14 @@ private:
     QMenu *trayIconMenu;
     QAction *restoreAction;
     QAction *quitAction;
+    NotchWidget *notchWidget;
 
     std::vector<std::string> read_lines(const QString &filename) const;
     bool is_ip_address(const std::string &str) const;
     void block_sites(const std::vector<std::string> &sites) const;
     void unblock_sites(const std::vector<std::string> &sites) const;
+    void drawNotch(QPainter &painter);
+    void renderLayoutElements();
 };
 
 #endif // MAINWINDOW_H

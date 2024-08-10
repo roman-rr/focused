@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "QtGui/qpainter.h"
 #include "macos_privileges.h"
 #include "ui_mainwindow.h"
 #include "editor_dialog.h"
@@ -7,20 +8,19 @@
 #include <fstream>
 #include <vector>
 #include <regex>
-#include <algorithm>
 #include <cstdlib>
-#include <filesystem>
 #include <unistd.h>
 #include <QProcess>
 #include "quadratic_dialog.h"
 #include <QFile>
 #include <QTextStream>
-#include <iostream>
 #include <QDebug>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QPainterPath>
 #include <QEvent>
 #include <QTimer> // Add this include
+#include <QVBoxLayout>
 
 const QString distractorsFilePath = ":/data/distractors.txt"; // Use a single variable for the resource path
 
@@ -33,39 +33,26 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Set window flags to disable moving and resizing
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-
-    // Disable window resizing by modifying window flags
     setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     setFixedSize(size());
 
-    connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
-    connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
-    connect(ui->editorButton, &QPushButton::clicked, this, &MainWindow::handleOpenEditorDialog);
-    connect(ui->exitButton, &QPushButton::clicked, this, &MainWindow::exitButtonClicked);
-
     // Create tray icon and menu
     trayIcon = new QSystemTrayIcon(this);
-    // trayIconMenu = new QMenu(this);
-    // restoreAction = new QAction(tr("Restore"), this);
-    // quitAction = new QAction(tr("Quit"), this);
-
-    // connect(restoreAction, &QAction::triggered, this, &MainWindow::restoreWindow);
-    // connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-
-    // trayIconMenu->addAction(restoreAction);
-    // trayIconMenu->addSeparator();
-    // trayIconMenu->addAction(quitAction);
-
-    // trayIcon->setContextMenu(trayIconMenu);
     trayIcon->setIcon(QIcon(":/public/icon.png"));
     trayIcon->show();
 
-    // Set up the tray icon activation behavior
+    // Connections
     connect(trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayIconActivated);
+    connect(ui->enableButton, &QPushButton::clicked, this, &MainWindow::handleEnableButton);
+    connect(ui->disableButton, &QPushButton::clicked, this, &MainWindow::handleDisableButton);
+    connect(ui->editorButton, &QPushButton::clicked, this, &MainWindow::handleOpenEditorDialog);
+
+    renderLayoutElements();
 
     setWindowOpacity(0);
+    setAttribute(Qt::WA_TranslucentBackground);
 
-    QTimer::singleShot(200, this, &MainWindow::restoreWindow);
+    QTimer::singleShot(300, this, &MainWindow::restoreWindow);
 
 }
 
@@ -77,6 +64,60 @@ MainWindow::~MainWindow()
     delete trayIconMenu;
     delete restoreAction;
     delete quitAction;
+}
+
+
+void MainWindow::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+
+    // Define the pen for the border
+    QPen pen(QColor(50, 50, 50));
+    pen.setWidth(1);
+    painter.setPen(pen);
+
+    // Set brush for filling the shape
+    QBrush brush(QColor(50, 50, 50));
+    painter.setBrush(brush);
+
+    // Adjust y-coordinates to draw the shapes higher within the widget
+    int yOffset = -6; // Adjust this value to move the drawing upward
+
+    // Draw rounded rectangle with a radius of 20
+    QRect rect(0, 20 + yOffset, width(), height() - 20); // Adjust the height for the notch
+    painter.drawRoundedRect(rect, 30, 30);
+
+    // Draw the smaller triangle notch at the top
+    QPolygon triangle;
+    int triangleWidth = 25;  // Adjust this value to change the width of the triangle
+    int triangleHeight = 12; // Adjust this value to change the height of the triangle
+
+    triangle << QPoint(width() / 2 - triangleWidth / 2, 20 + yOffset)
+             << QPoint(width() / 2 + triangleWidth / 2, 20 + yOffset)
+             << QPoint(width() / 2, 20 - triangleHeight + yOffset);
+    painter.drawPolygon(triangle);
+}
+
+void MainWindow::renderLayoutElements() {
+    QPushButton *menuButton = new QPushButton("Menu", this);
+    QPushButton *exitButton = new QPushButton("Exit", this);
+
+    menuButton->setFixedWidth(60);
+    exitButton->setFixedWidth(60);
+
+    // Create a horizontal layout for the buttons
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    hLayout->addWidget(menuButton);
+    hLayout->addStretch();
+    hLayout->addWidget(exitButton);
+
+    QVBoxLayout *vLayout = new QVBoxLayout;
+    vLayout->addSpacerItem(new QSpacerItem(0, 20, QSizePolicy::Minimum, QSizePolicy::Fixed));
+    vLayout->addLayout(hLayout);
+    vLayout->addStretch();
+
+    ui->centralwidget->setLayout(vLayout);
+
+    connect(exitButton, &QPushButton::clicked, this, &MainWindow::exitButtonClicked);
 }
 
 // Handle close event to minimize to tray
@@ -115,11 +156,8 @@ void MainWindow::restoreWindow()
 {
     QPoint trayIconPos = getTrayIconPosition();
 
-    // Log the tray icon position
-    qDebug() << "Tray Icon Position (Qt): " << trayIconPos.x() << trayIconPos.y();
-
     // Calculate the position for the window (above the tray icon)
-    int x = trayIconPos.x() - (width() / 2); // Center below the tray icon
+    int x = trayIconPos.x() - (width() / 2) + 5; // Center below the tray icon
     int y = 0; // Set the top margin to zero
 
     // Ensure x is within screen bounds
@@ -132,10 +170,10 @@ void MainWindow::restoreWindow()
     }
 
     // Log the calculated window position
-    qDebug() << "Window Position: " << x << y;
+    qDebug() << "Window Restored with Position: " << x << y;
 
     // Set the position of the window
-    move(x, y);
+    move(x, 0);
 
     // Show window after few renders
     if (trayIconPos.x() >= 0 && trayIconPos.y() >= 0) {
@@ -143,6 +181,7 @@ void MainWindow::restoreWindow()
         show();
         raise();
         activateWindow();
+        qDebug() << "ActivateWindwo() called: ";
     }
 }
 
@@ -255,7 +294,7 @@ void MainWindow::block_sites(const std::vector<std::string> &sites) const {
         return;
     }
 
-    ui->statusbar->showMessage("Sites blocked successfully.", 5000);  // Message displayed for 5 seconds
+    // ui->statusbar->showMessage("Sites blocked successfully.", 5000);  // Message displayed for 5 seconds
 }
 
 // Function to unblock sites
@@ -279,7 +318,7 @@ void MainWindow::unblock_sites(const std::vector<std::string> &sites) const {
         return;
     }
 
-    ui->statusbar->showMessage("Sites unblocked successfully.", 5000);  // Message displayed for 5 seconds
+   // ui->statusbar->showMessage("Sites unblocked successfully.", 5000);  // Message displayed for 5 seconds
 }
 
 void MainWindow::handleEnableButton() {

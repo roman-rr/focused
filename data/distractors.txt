@@ -4,6 +4,7 @@ twitter.com
 instagram.com
 linkedin.com
 reddit.com
+pinterest.com
 
 # Example IP Address
 123.45.67.89

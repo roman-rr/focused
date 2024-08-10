@@ -5,30 +5,30 @@
 #include <QLocale>
 #include <QTranslator>
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-
-    // Set the application icon
-    a.setWindowIcon(QIcon(":/public/icon.png"));
-
+void setupTranslator(QApplication &app) {
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
         const QString baseName = "Focused_" + QLocale(locale).name();
         if (translator.load(":/i18n/" + baseName)) {
-            a.installTranslator(&translator);
+            app.installTranslator(&translator);
             break;
         }
     }
+}
 
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
 
-    MainWindow w;
+    app.setWindowIcon(QIcon(":/public/icon.png"));
 
-    // Register for macOS-specific events
-    MacOSHelpers::registerForAppEvents(&w);
+    setupTranslator(app);
 
+    MainWindow mainWindow;
+    MacOSHelpers::registerForAppEvents(&mainWindow);
 
-    w.show();
-    return a.exec();
+    mainWindow.show();
+
+    return app.exec();
 }
