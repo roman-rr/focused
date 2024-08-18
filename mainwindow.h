@@ -9,8 +9,6 @@
 #include <string>
 #include <QTimer>
 
-#include "topnotch.h"
-
 namespace Ui {
 class MainWindow;
 }
@@ -48,7 +46,6 @@ private:
     QMenu *trayIconMenu;
     QAction *restoreAction;
     QAction *quitAction;
-    NotchWidget *notchWidget;
 
     std::vector<std::string> read_lines(const QString &filename) const;
     bool is_ip_address(const std::string &str) const;

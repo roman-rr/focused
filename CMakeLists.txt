@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Set the Qt installation path
-set(CMAKE_PREFIX_PATH "/Users/romanrr/Qt/6.7.1/macos")
+set(CMAKE_PREFIX_PATH "/Users/romanrr/Qt/6.8.0/macos")
 
 project(Focused VERSION 0.1 LANGUAGES CXX)
 
@@ -12,7 +12,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
 
 set(TS_FILES Focused_en_US.ts)

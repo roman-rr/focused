@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowOpacity(0);
     setAttribute(Qt::WA_TranslucentBackground);
 
-    QTimer::singleShot(300, this, &MainWindow::restoreWindow);
+    QTimer::singleShot(500, this, &MainWindow::restoreWindow);
 
 }
 
@@ -181,7 +181,7 @@ void MainWindow::restoreWindow()
         show();
         raise();
         activateWindow();
-        qDebug() << "ActivateWindwo() called: ";
+        qDebug() << "ActivateWindow() called: ";
     }
 }
 
@@ -369,15 +369,26 @@ void MainWindow::handleOpenEditorDialog()
 
 void MainWindow::exitButtonClicked()
 {
-    // Create a confirmation dialog
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Exit Confirmation", "Are you sure you want to exit?",
-                                  QMessageBox::Yes | QMessageBox::No);
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog);
 
-    // Check the user's response
-    if (reply == QMessageBox::Yes) {
-        qApp->quit(); // Exit the application
-    }
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+    QLabel *label = new QLabel("Are you sure you want to exit?", dialog);
+    layout->addWidget(label);
+
+    QPushButton *yesButton = new QPushButton("Yes", dialog);
+    QPushButton *noButton = new QPushButton("No", dialog);
+
+    QHBoxLayout *buttonLayout = new QHBoxLayout;
+    buttonLayout->addWidget(yesButton);
+    buttonLayout->addWidget(noButton);
+
+    layout->addLayout(buttonLayout);
+
+    QObject::connect(yesButton, &QPushButton::clicked, dialog, [=]() { qApp->quit(); });
+    QObject::connect(noButton, &QPushButton::clicked, dialog, &QDialog::reject);
+
+    dialog->exec();
 }
 
 
