@@ -1,0 +1,25 @@
+## (WAIT FOR CHANNEL) Focused
+- migrate to cursor from QT editor
+- for some reason distractors not taken from new distractors.txt, but took default file
+- icon prompt wrong equation placeholder
+- redirect to holder (block by focused. stay focused. deep breath.)
+- don't close main window on dialogs
+- disable on quit
+- check QT examples UI buttons
+- Design with ChatGPT
+- graphic toggle on/off
+- markup minimal ui
+- Roots only natural (not floats)
+- level of equatio switch: normal, square, off, puzzle.
+///
+- DNS resolver 
+- prepare for app store
+- free services: Analytics / Signups / New version available
+- Compile MacOS dmg
+- to site + share lamine
+- Compile iOS
+- Auth with mailing
+- I was focused today ... time ... share
+- App store – First push it free and gain audience
+- site + promote
+- quiz of distructors -> list of customers ;) CusDev

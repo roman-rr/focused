@@ -41,6 +41,8 @@ set(PROJECT_SOURCES
     get_tray_icon_position.h
     get_tray_icon_position.mm
 
+    data/distractors.txt
+
     resources.qrc
     ${TS_FILES}
 )

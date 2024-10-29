@@ -1,10 +1,23 @@
 # Social Networks
 facebook.com
 twitter.com
+x.com
 instagram.com
 linkedin.com
 reddit.com
+livejournal.com
+oldfisher-mk.livejournal.com
+ru.pinterest.com
 pinterest.com
+adidas.co.th
+nike.com
+th.puma.com
+puma.com
+hugoboss.com
+asos.com
+cnn.com
+bbc.com
+shop.nhl.com
 
 # Example IP Address
 123.45.67.89
